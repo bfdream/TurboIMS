@@ -11,9 +11,9 @@ pluginManagement {
         gradlePluginPortal()
     }
     plugins {
-        id("com.android.application") version "8.13.0"
-        id("com.android.library") version "8.13.0"
-        id("org.jetbrains.kotlin.android") version "1.9.22"
+        id("com.android.application") version "8.13.1"
+        id("com.android.library") version "8.13.1"
+        id("org.jetbrains.kotlin.android") version "2.2.21"
     }
 }
 
@@ -32,25 +32,16 @@ dependencyResolutionManagement {
 }
 
 plugins {
-    id("com.android.settings") version "8.13.0"
+    id("com.android.settings") version "8.13.1"
 }
 
 android {
-    compileSdk {
-        version = release(36)
-    }
-    minSdk {
-        version = release(33)
-    }
-    targetSdk {
-        version = release(36)
-    }
     buildToolsVersion = "36.1.0"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
 
-rootProject.name = "Ims"
+rootProject.name = "TurbolIms"
 include(":app")
 include(":stub")

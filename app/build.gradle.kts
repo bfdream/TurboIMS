@@ -5,22 +5,39 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-fun String.execute(workingDir: File? = null): Process {
-    val process = ProcessBuilder(*split(" ").toTypedArray())
+fun String.runCommand(workingDir: File = file("./")): String {
+    val parts = this.split("\\s".toRegex())
+    val proc = ProcessBuilder(*parts.toTypedArray())
         .directory(workingDir)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
         .redirectError(ProcessBuilder.Redirect.PIPE)
         .start()
-    process.waitFor(1, TimeUnit.MINUTES)
-    return process
+
+    proc.waitFor(1, TimeUnit.MINUTES)
+    return proc.inputStream.bufferedReader().readText().trim()
 }
 
+val packageName = "io.github.vvb2060.ims"
+val gitVersionCode: Int = "git rev-list HEAD --count".runCommand().toInt()
+val gitVersionName = "git rev-parse --short=8 HEAD".runCommand()
+val appVersionName = libs.versions.app.version.get()
+
 android {
-    namespace = "io.github.vvb2060.ims"
+    namespace = packageName
     defaultConfig {
-        applicationId = "io.github.turboims.pixel"
-        versionCode = Integer.parseInt("git rev-list --count HEAD".execute(null, rootDir).text.trim())
-        versionName = libs.versions.versionName.get()
+        applicationId = packageName
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        versionCode = gitVersionCode
+        versionName = appVersionName
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+    signingConfigs {
+        create("sign")
     }
     buildTypes {
         release {
@@ -28,24 +45,17 @@ android {
             isShrinkResources = true
             vcsInfo.include = false
             proguardFiles("proguard-rules.pro")
-            signingConfig = signingConfigs["debug"]
+            versionNameSuffix = ".r$gitVersionCode.$gitVersionName"
+            signingConfig = signingConfigs.getByName("sign")
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
         buildConfig = true
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
     }
     lint {
         checkReleaseBuilds = false
@@ -68,3 +78,5 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.lifecycle.viewmodel.ktx)
 }
+
+apply(from = rootProject.file("signing.gradle"))
