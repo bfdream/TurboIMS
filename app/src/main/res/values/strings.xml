@@ -44,6 +44,7 @@
     <!-- Messages -->
     <string name="shizuku_not_running_msg">Shizuku 未运行，请先启动 Shizuku</string>
     <string name="shizuku_no_permission_msg">请授予 Shizuku 权限</string>
+    <string name="phone_no_permission_msg">请授予读取SIM卡权限</string>
     <string name="config_success_message">配置已应用！</string>
     <string name="config_failed">配置失败：%s</string>
     <string name="update_shizuku">请更新 Shizuku 到最新版本</string>
