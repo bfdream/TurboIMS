@@ -15,7 +15,7 @@ import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 
 class PrivilegedProcess : Instrumentation() {
-    companion object{
+    companion object {
         private const val TAG = "PrivilegedProcess"
         private const val PREFS_NAME = "ims_config"
     }
@@ -78,6 +78,7 @@ class PrivilegedProcess : Instrumentation() {
                 Log.i(TAG, "Processing SubId: $subId")
                 val bundle = cm.getConfigForSubId(subId, "vvb2060_config_version")
                 val currentVersion = bundle.getInt("vvb2060_config_version", 0)
+                Log.i(TAG, "Current config version: $currentVersion")
 
                 if (currentVersion != BuildConfig.VERSION_CODE) {
                     values.putInt("vvb2060_config_version", BuildConfig.VERSION_CODE)
