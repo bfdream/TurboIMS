@@ -15,22 +15,32 @@
 
 [English](README.md)
 
+## 截图
+
+<p align="center">
+  <img src="docs/Screenshot1.png" width="400"/>
+  <img src="docs/Screenshot2.png" width="400"/>
+</p>
+
 ## 关于
 
 TurboIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（高清语音通话）、VoWiFi（Wi-Fi 通话）、VT（视频通话）和 VoNR（5G 语音）等 IMS 功能的工具。它需要 [Shizuku](https://shizuku.rikka.app/zh-CN/) 才能工作。
 
 ## 功能
 
-- **IMS 功能控制**: 启用或禁用以下功能：
-  - VoLTE (高清语音通话)
-  - VoWiFi (Wi-Fi 通话)
-  - VT (视频通话)
-  - VoNR (5G 语音)
-  - Cross-SIM Calling (跨卡通话)
-  - UT (补充业务)
-  - 5G NR
-- **SIM 卡选择**: 为特定的 SIM 卡应用设置。
-- **系统信息**: 查看您的 Android 版本和 Shizuku 状态。
+- **系统信息**: 显示您设备的应用版本、Android 版本和安全补丁版本。
+- **Shizuku 状态**: 显示 Shizuku 的当前状态，并允许刷新权限。
+- **SIM 卡选择**: 将设置应用于特定的 SIM 卡或一次性应用于所有 SIM 卡。
+- **可定制的 IMS 功能**:
+    - **运营商名称**: 覆盖设备上显示的运营商名称。
+    - **VoLTE (高清语音通话)**: 开启 4G 高清语音通话。
+    - **VoWiFi (Wi-Fi 通话)**: 通过 Wi-Fi 网络拨打电话，并可选择仅 Wi-Fi 模式。
+    - **VT (视频通话)**: 开启基于 IMS 的视频通话。
+    - **VoNR (5G 语音)**: 开启 5G 高清语音通话。
+    - **Cross-SIM Calling (跨卡通话)**: 开启双卡互连功能。
+    - **UT (补充业务)**: 通过 UT 开启呼叫转移、呼叫等待等补充服务。
+    - **5G NR**: 开启 5G NSA（非独立组网）和 SA（独立组网）网络。
+    - **5G 信号强度阈值**: 可选择是否应用自定义的 5G 信号强度阈值。
 
 ## 要求
 

@@ -15,22 +15,32 @@
 
 [简体中文](README_CN.md)
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/Screenshot1.png" width="400"/>
+  <img src="docs/Screenshot2.png" width="400"/>
+</p>
+
 ## About
 
 TurboIMS is a tool that allows you to enable or disable IMS features like Voice over LTE (VoLTE), Wi-Fi Calling (VoWiFi), Video Calling (VT), and 5G Voice (VoNR) on Google Pixel phones. It requires [Shizuku](https://shizuku.rikka.app/) to work.
 
 ## Features
 
-- **IMS Feature Control**: Enable or disable the following features:
-    - VoLTE (Voice over LTE)
-    - VoWiFi (Wi-Fi Calling)
-    - VT (Video Calling)
-    - VoNR (Voice over 5G)
-    - Cross-SIM Calling
-    - UT (Supplementary Services)
-    - 5G NR
-- **SIM Card Selection**: Apply settings for a specific SIM card.
-- **System Info**: View your Android version and Shizuku status.
+- **System Information**: Displays your device's app version, Android version, and security patch version.
+- **Shizuku Status**: Shows the current status of Shizuku and allows for refreshing permissions.
+- **SIM Card Selection**: Apply settings to a specific SIM card or all SIM cards at once.
+- **Customizable IMS Features**:
+    - **Carrier Name**: Override the carrier name displayed on your device.
+    - **VoLTE (Voice over LTE)**: Enable high-definition voice calls over 4G.
+    - **VoWiFi (Wi-Fi Calling)**: Make calls over Wi-Fi networks, with options for Wi-Fi only mode.
+    - **VT (Video Calling)**: Enable IMS-based video calls.
+    - **VoNR (Voice over 5G)**: Enable high-definition voice calls over 5G.
+    - **Cross-SIM Calling**: Enable dual-SIM interconnection features.
+    - **UT (Supplementary Services)**: Enable call forwarding, call waiting, and other supplementary services over UT.
+    - **5G NR**: Enable 5G NSA (Non-Standalone) and SA (Standalone) networks.
+    - **5G Signal Strength Thresholds**: Option to apply custom 5G signal strength thresholds.
 
 ## Requirements
 
@@ -61,7 +71,7 @@ TurboIMS is a tool that allows you to enable or disable IMS features like Voice 
 
 ## Disclaimer
 
-This application modifies your device'''s carrier configuration. Use it at your own risk. The developers are not responsible for any damage or loss of functionality.
+This application modifies your device's carrier configuration. Use it at your own risk. The developers are not responsible for any damage or loss of functionality.
 
 ## License
 
