@@ -43,7 +43,9 @@ data class SimSelection(
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val TAG = "MainViewModel"
+    companion object{
+        private const val TAG = "MainViewModel"
+    }
 
     private val _androidVersion = MutableStateFlow("")
     val androidVersion: StateFlow<String> = _androidVersion.asStateFlow()
@@ -147,7 +149,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onFeatureSwitchChange(feature: Feature, value: Any) {
-        Log.i(TAG, "onFeatureSwitchChange: $feature, $value")
+        Log.d(TAG, "onFeatureSwitchChange: $feature, $value")
         viewModelScope.launch {
             val updatedSwitches = _featureSwitches.value.toMutableMap()
             updatedSwitches[feature] = value

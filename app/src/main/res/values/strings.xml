@@ -5,7 +5,9 @@
 
     <!-- Main Screen -->
     <string name="system_info">系统信息</string>
+    <string name="app_version">应用版本：%s</string>
     <string name="android_version">Android 版本：%s</string>
+    <string name="security_patch_version">系统安全补丁版本：%s</string>
     <string name="shizuku_status">Shizuku 状态：%s</string>
     <string name="shizuku_ready">✅ 已就绪</string>
     <string name="shizuku_not_running">❌ 未运行</string>

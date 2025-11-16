@@ -45,6 +45,13 @@ android {
         create("sign")
     }
     buildTypes {
+        debug {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            vcsInfo.include = false
+            proguardFiles("proguard-rules.pro")
+            versionNameSuffix = ".d$gitVersionCode.$gitVersionName"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

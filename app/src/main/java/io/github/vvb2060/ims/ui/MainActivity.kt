@@ -1,6 +1,7 @@
 package io.github.vvb2060.ims.ui
 
 import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -59,6 +60,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
+import io.github.vvb2060.ims.BuildConfig
 import io.github.vvb2060.ims.Feature
 import io.github.vvb2060.ims.FeatureValueType
 import io.github.vvb2060.ims.MainViewModel
@@ -213,7 +215,17 @@ fun SystemInfoCard(
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
+                stringResource(R.string.app_version, BuildConfig.VERSION_NAME),
+                fontSize = 14.sp,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
                 stringResource(R.string.android_version, androidVersion),
+                fontSize = 14.sp,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.security_patch_version, Build.VERSION.SECURITY_PATCH),
                 fontSize = 14.sp,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -235,6 +247,7 @@ fun SystemInfoCard(
                 fontSize = 14.sp,
                 color = shizukuStatusColor
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = onRefresh) {
                     Text(text = stringResource(id = R.string.refresh_permission))
