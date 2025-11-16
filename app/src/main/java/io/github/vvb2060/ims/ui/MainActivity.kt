@@ -41,6 +41,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -87,6 +90,8 @@ class MainActivity : ComponentActivity() {
 
                 val readPhoneStatePermission =
                     rememberPermissionState(Manifest.permission.READ_PHONE_STATE)
+                val scrollBehavior =
+                    TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
                 val androidVersion by viewModel.androidVersion.collectAsStateWithLifecycle()
                 val shizukuStatus by viewModel.shizukuStatus.collectAsStateWithLifecycle()
@@ -114,7 +119,9 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Scaffold(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
                     contentWindowInsets = WindowInsets(0.dp),
                     topBar = {
                         CenterAlignedTopAppBar(
@@ -135,13 +142,14 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             },
+                            scrollBehavior = scrollBehavior,
                             actions = {
                                 IconButton(onClick = {
                                     uriHandler.openUri("https://github.com/Mystery00/TurboIMS")
                                 }) {
                                     Icon(painterResource(R.drawable.ic_github), null)
                                 }
-                            }
+                            },
                         )
                     }) { innerPadding ->
                     Column(
