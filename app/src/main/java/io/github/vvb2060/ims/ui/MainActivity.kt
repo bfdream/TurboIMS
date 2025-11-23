@@ -252,6 +252,11 @@ fun SystemInfoCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
+                stringResource(R.string.system_build_version, Build.DISPLAY),
+                fontSize = 14.sp,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
                 stringResource(R.string.security_patch_version, Build.VERSION.SECURITY_PATCH),
                 fontSize = 14.sp,
             )
