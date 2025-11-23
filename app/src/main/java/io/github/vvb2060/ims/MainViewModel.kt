@@ -43,7 +43,7 @@ data class SimSelection(
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    companion object{
+    companion object {
         private const val TAG = "MainViewModel"
     }
 
@@ -169,5 +169,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             apply()
         }
         ShizukuProvider.startInstrument(context)
+    }
+
+    fun onResetConfiguration(context: Context) {
+        ShizukuProvider.startInstrument(context, true)
     }
 }

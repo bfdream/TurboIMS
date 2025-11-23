@@ -43,15 +43,25 @@
 
     <!-- Button -->
     <string name="apply_config">应用配置</string>
+    <string name="reset_config">重置配置</string>
 
     <!-- Tips -->
-    <string name="tips">提示：\n• 需要先启动并授权 Shizuku\n• 配置应用到选择的 SIM 卡\n• 配置是增加的形式，意思是打开之后再关闭不会去掉对应的配置</string>
+    <string name="tip">提示：</string>
+    <string-array name="tips">
+        <item>!• 功能列表开关仅用于展示本次操作需要修改的内容，并不表示当前系统相关功能的开启情况</item>
+        <item>!• 功能列表开关仅用于展示本次操作需要修改的内容，并不表示当前系统相关功能的开启情况</item>
+        <item>!• 功能列表开关仅用于展示本次操作需要修改的内容，并不表示当前系统相关功能的开启情况</item>
+        <item>• 需要先启动并授权 Shizuku</item>
+        <item>• 配置生效到选择的 SIM 卡上</item>
+        <item>• 重置配置会回到一开始的状态，但是功能开关不会有变化</item>
+    </string-array>
 
     <!-- Messages -->
     <string name="shizuku_not_running_msg">Shizuku 未运行，请先启动 Shizuku</string>
     <string name="shizuku_no_permission_msg">请授予 Shizuku 权限</string>
     <string name="phone_no_permission_msg">请授予读取SIM卡权限</string>
     <string name="config_success_message">配置已应用！</string>
+    <string name="config_success_reset_message">配置已重置！</string>
     <string name="config_failed">配置失败：%s</string>
     <string name="update_shizuku">请更新 Shizuku 到最新版本</string>
 </resources>

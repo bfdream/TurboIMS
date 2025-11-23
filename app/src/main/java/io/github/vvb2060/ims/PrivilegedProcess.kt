@@ -37,13 +37,22 @@ class PrivilegedProcess : Instrumentation() {
         }
 
         try {
-            overrideConfig()
+            val reset = arguments.getBoolean("reset", false)
+            overrideConfig(reset)
             Log.i(TAG, "overrideConfig completed successfully")
-            Toast.makeText(
-                context,
-                context.getString(R.string.config_success_message),
-                Toast.LENGTH_LONG
-            ).show()
+            if (reset) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.config_success_reset_message),
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.config_success_message),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         } catch (t: Throwable) {
             Log.e(TAG, "failed to override config", t)
             Toast.makeText(
@@ -57,7 +66,7 @@ class PrivilegedProcess : Instrumentation() {
 
     @SuppressLint("MissingPermission", "NewApi")
     @Throws(Exception::class)
-    private fun overrideConfig() {
+    private fun overrideConfig(reset: Boolean) {
         val binder = ServiceManager.getService(Context.ACTIVITY_SERVICE)
         val am = IActivityManager.Stub.asInterface(ShizukuBinderWrapper(binder))
         Log.i(TAG, "starting shell permission delegation")
@@ -65,7 +74,7 @@ class PrivilegedProcess : Instrumentation() {
         try {
             val cm = context.getSystemService(CarrierConfigManager::class.java)
             val sm = context.getSystemService(SubscriptionManager::class.java)
-            val values: PersistableBundle = getConfig()
+            val values: PersistableBundle? = if (reset) null else getConfig()
 
             // 读取用户选择的 SubId
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

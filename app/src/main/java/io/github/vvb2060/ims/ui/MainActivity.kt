@@ -9,10 +9,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,6 +59,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -99,7 +102,6 @@ class MainActivity : ComponentActivity() {
                 val featureSwitches by viewModel.featureSwitches.collectAsStateWithLifecycle()
 
                 var selectedSim by remember { mutableStateOf<SimSelection?>(null) }
-                var showSimSelectionDialog by remember { mutableStateOf(false) }
                 var showShizukuUpdateDialog by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
@@ -115,6 +117,11 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(shizukuStatus) {
                     if (shizukuStatus == ShizukuStatus.NEED_UPDATE) {
                         showShizukuUpdateDialog = true
+                    }
+                }
+                LaunchedEffect(allSimList) {
+                    if (selectedSim == null) {
+                        selectedSim = allSimList.firstOrNull()
                     }
                 }
 
@@ -169,9 +176,11 @@ class MainActivity : ComponentActivity() {
                                 viewModel.requestShizukuPermission(0)
                             },
                         )
-                        SimCardSelectionCard(selectedSim, allSimList) {
-                            showSimSelectionDialog = true
-                        }
+                        SimCardSelectionCard(selectedSim, allSimList, onSelectSim = {
+                            selectedSim = it
+                        }, onRefreshSimList = {
+                            viewModel.loadSimList()
+                        })
                         FeaturesCard(featureSwitches, viewModel::onFeatureSwitchChange)
                         ApplyButton(selectedSim != null) {
                             if (shizukuStatus != ShizukuStatus.READY) {
@@ -184,21 +193,19 @@ class MainActivity : ComponentActivity() {
                             }
                             viewModel.onApplyConfiguration(context, selectedSim!!)
                         }
+                        ResetButton {
+                            if (shizukuStatus != ShizukuStatus.READY) {
+                                Toast.makeText(
+                                    context,
+                                    R.string.shizuku_not_running_msg,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@ResetButton
+                            }
+                            viewModel.onResetConfiguration(context)
+                        }
                         Tips()
                         Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
-
-                        if (showSimSelectionDialog) {
-                            SimSelectionDialog(
-                                allSimList,
-                                selectedSim,
-                                onSelectSim = {
-                                    selectedSim = it
-                                },
-                                dismissDialog = {
-                                    showSimSelectionDialog = false
-                                }
-                            )
-                        }
 
                         if (showShizukuUpdateDialog) {
                             ShizukuUpdateDialog {
@@ -235,8 +242,8 @@ fun SystemInfoCard(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 stringResource(R.string.app_version, BuildConfig.VERSION_NAME),
                 fontSize = 14.sp,
@@ -291,7 +298,8 @@ fun SystemInfoCard(
 fun SimCardSelectionCard(
     selectedSim: SimSelection?,
     allSimList: List<SimSelection>,
-    openSimSelectionDialog: () -> Unit,
+    onSelectSim: (SimSelection) -> Unit,
+    onRefreshSimList: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -299,33 +307,38 @@ fun SimCardSelectionCard(
             .padding(horizontal = 16.dp),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                stringResource(id = R.string.sim_card),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            val showTitle = when {
-                allSimList.isEmpty() -> "请插入SIM"
-                selectedSim == null -> "请选择SIM"
-                else -> selectedSim.showTitle
-            }
-            Text(
-                showTitle,
-                fontSize = 14.sp,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            TextButton(
-                onClick = openSimSelectionDialog,
-                enabled = allSimList.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    stringResource(id = R.string.select_sim),
-                    modifier = Modifier.fillMaxWidth()
+                    stringResource(id = R.string.sim_card),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(bottom = 16.dp)
                 )
+                IconButton(onClick = onRefreshSimList) {
+                    Icon(painterResource(R.drawable.ic_refresh), null)
+                }
+            }
+            Column {
+                allSimList.forEach { sim ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = (selectedSim == sim),
+                                onClick = { onSelectSim(sim) }),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (selectedSim == sim),
+                            onClick = { onSelectSim(sim) })
+                        Text(sim.showTitle)
+                    }
+                }
             }
         }
     }
@@ -347,8 +360,8 @@ fun FeaturesCard(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
 
             Feature.entries.forEachIndexed { index, feature ->
                 val title = stringResource(feature.showTitleRes)
@@ -462,6 +475,27 @@ fun BooleanFeatureItem(
 }
 
 @Composable
+fun ResetButton(
+    onResetConfiguration: () -> Unit,
+) {
+    Button(
+        onClick = onResetConfiguration,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .height(56.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+    ) {
+        Text(
+            stringResource(R.string.reset_config),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+    }
+}
+
+@Composable
 fun ApplyButton(
     isApplyButtonEnabled: Boolean,
     onApplyConfiguration: () -> Unit,
@@ -486,55 +520,23 @@ fun ApplyButton(
 
 @Composable
 fun Tips() {
-    Text(
-        stringResource(id = R.string.tips),
-        fontSize = 12.sp,
-        color = MaterialTheme.colorScheme.outline,
-        modifier = Modifier.padding(16.dp)
-    )
-}
-
-@Composable
-fun SimSelectionDialog(
-    allSimList: List<SimSelection>,
-    initSelectedSim: SimSelection?,
-    onSelectSim: (SimSelection) -> Unit,
-    dismissDialog: () -> Unit
-) {
-    var selectedSim by remember { mutableStateOf(initSelectedSim ?: allSimList.first()) }
-    AlertDialog(
-        onDismissRequest = dismissDialog,
-        title = { Text(stringResource(id = R.string.select_sim)) },
-        text = {
-            Column {
-                allSimList.forEach { sim ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .selectable(
-                                selected = (selectedSim == sim),
-                                onClick = { selectedSim = sim })
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = (selectedSim == sim),
-                            onClick = { selectedSim = sim })
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(sim.showTitle)
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                dismissDialog()
-                onSelectSim(selectedSim)
-            }) {
-                Text(stringResource(id = android.R.string.ok))
-            }
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(
+            stringResource(id = R.string.tip),
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.outline,
+        )
+        val lines = stringArrayResource(id = R.array.tips)
+        for (text in lines) {
+            val t = text.removePrefix("!")
+            Text(
+                t,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.outline,
+                fontWeight = if (text.startsWith("!")) FontWeight.Bold else null
+            )
         }
-    )
+    }
 }
 
 @Composable

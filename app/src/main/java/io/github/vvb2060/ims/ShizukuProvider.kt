@@ -20,7 +20,7 @@ class ShizukuProvider : ShizukuProvider() {
 
     companion object {
         private const val TAG = "ShizukuProvider"
-        fun startInstrument(context: Context) {
+        fun startInstrument(context: Context, reset: Boolean = false) {
             try {
                 Log.i(TAG, "starting instrumentation...")
                 val binder = ServiceManager.getService(Context.ACTIVITY_SERVICE)
@@ -29,7 +29,9 @@ class ShizukuProvider : ShizukuProvider() {
                 val flags = 8 // ActivityManager.INSTR_FLAG_NO_RESTART
                 val connection = UiAutomationConnection()
                 Log.d(TAG, "calling startInstrumentation with component: $name")
-                am.startInstrumentation(name, null, flags, Bundle(), null, connection, 0, null)
+                val bundle = Bundle()
+                bundle.putBoolean("reset", reset)
+                am.startInstrumentation(name, null, flags, bundle, null, connection, 0, null)
                 Log.i(TAG, "instrumentation started successfully")
             } catch (e: Exception) {
                 Log.e(TAG, "failed to start instrumentation", e)
