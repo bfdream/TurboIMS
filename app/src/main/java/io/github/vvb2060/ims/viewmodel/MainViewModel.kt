@@ -34,8 +34,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _allSimList = MutableStateFlow<List<SimSelection>>(emptyList())
     val allSimList: StateFlow<List<SimSelection>> = _allSimList.asStateFlow()
 
-    private val prefs = application.getSharedPreferences("ims_config", Context.MODE_PRIVATE)
-
     private val binderListener = Shizuku.OnBinderReceivedListener { updateShizukuStatus() }
     private val binderDeadListener = Shizuku.OnBinderDeadListener { updateShizukuStatus() }
 

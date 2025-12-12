@@ -13,10 +13,6 @@ import java.io.File
 import java.io.FileOutputStream
 
 class LogcatViewModel(application: Application) : AndroidViewModel(application) {
-    companion object {
-        private const val TAG = "LogcatViewModel"
-    }
-
     val logs = LogcatRepository.logs
 
     init {

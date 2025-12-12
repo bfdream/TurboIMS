@@ -15,7 +15,6 @@ import android.util.Log
 import io.github.vvb2060.ims.LogcatRepository
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
-import kotlin.math.max
 
 class ImsModifier : Instrumentation() {
     companion object Companion {
