@@ -17,20 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-
-@Composable
-@Preview
-fun PreviewSingleChoiceDialog() {
-    SingleChoiceDialog(
-        openDialog = true,
-        title = "请选择Sim卡",
-        list = listOf("卡1", "卡2", "卡3"),
-        initialValue = "卡1",
-        onDismiss = {},
-        onConfirm = {},
-    )
-}
 
 @Composable
 fun <T> SingleChoiceDialog(
