@@ -1,4 +1,4 @@
-package io.github.vvb2060.ims
+package io.github.vvb2060.ims.model
 
 import androidx.compose.ui.graphics.Color
 import java.util.Date

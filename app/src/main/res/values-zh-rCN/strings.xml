@@ -19,6 +19,7 @@
 
     <!-- SIM Card -->
     <string name="sim_card">本次应用的 SIM 卡</string>
+    <string name="all_sim">所有Sim</string>
 
     <!-- Features -->
     <string name="features_config">本次应用功能列表</string>

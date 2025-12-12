@@ -19,11 +19,12 @@
 
     <!-- SIM Card -->
     <string name="sim_card">SIM Card for this apply</string>
+    <string name="all_sim">All SIM</string>
 
     <!-- Features -->
     <string name="features_config">Features for this apply</string>
     <string name="carrier_name">Carrier Name</string>
-    <string name="carrier_name_desc">Customize the carrier name, leave blank for no change</string>
+    <string name="carrier_name_desc">Customize carrier name</string>
     <string name="volte">VoLTE (4G Voice)</string>
     <string name="volte_desc">Enable 4G HD voice calls</string>
     <string name="vowifi">VoWiFi (WiFi Calling)</string>
@@ -38,7 +39,7 @@
     <string name="ut_desc">Call forwarding, call waiting, etc.</string>
     <string name="_5g_nr">5G NR (NSA/SA)</string>
     <string name="_5g_nr_desc">Enable 5G network (Non-Standalone/Standalone)</string>
-    <string name="_5g_thresholds">5G Signal Strength Threshold Adjustment</string>
+    <string name="_5g_thresholds">5G Signal Strength Modify</string>
     <string name="_5g_thresholds_desc">Adjust 5G signal strength thresholds to be the same as LTE thresholds</string>
 
     <!-- Button -->

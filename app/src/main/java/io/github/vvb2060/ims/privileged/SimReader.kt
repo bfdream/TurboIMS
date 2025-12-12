@@ -2,12 +2,15 @@ package io.github.vvb2060.ims.privileged
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.IActivityManager
 import android.app.Instrumentation
 import android.content.Context
 import android.os.Bundle
-import android.os.Parcelable
+import android.os.ServiceManager
+import android.system.Os
+import android.telephony.SubscriptionManager
 import android.util.Log
-import kotlinx.parcelize.Parcelize
+import rikka.shizuku.ShizukuBinderWrapper
 
 class SimReader : Instrumentation() {
     companion object {
@@ -23,20 +26,17 @@ class SimReader : Instrumentation() {
     @SuppressLint("MissingPermission")
     override fun start() {
         super.start()
-        uiAutomation.adoptShellPermissionIdentity()
+        val binder = ServiceManager.getService(Context.ACTIVITY_SERVICE)
+        val am = IActivityManager.Stub.asInterface(ShizukuBinderWrapper(binder))
+        Log.i(TAG, "starting shell permission delegation")
+        am.startDelegateShellPermissionIdentity(Os.getuid(), null)
         try {
             Log.d(TAG, "start read sim info list")
             val subManager =
                 context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
             val subList = subManager.activeSubscriptionInfoList
-            val resultList = subList?.map {
-                SimInfo(
-                    it.subscriptionId,
-                    it.displayName.toString(),
-                    it.carrierName.toString(),
-                    it.simSlotIndex,
-                )
-            } ?: emptyList()
+            val resultList = subList ?: emptyList()
+            Log.i(TAG, "read sim info list size: ${resultList.size}")
             val bundle = Bundle()
             bundle.putParcelableArrayList(BUNDLE_RESULT, ArrayList(resultList))
             finish(Activity.RESULT_OK, bundle)
@@ -44,15 +44,8 @@ class SimReader : Instrumentation() {
             Log.e(TAG, "failed to read sim info list", e)
             finish(Activity.RESULT_CANCELED, Bundle())
         } finally {
-            uiAutomation.dropShellPermissionIdentity()
+            am.stopDelegateShellPermissionIdentity()
+            Log.i(TAG, "stopped shell permission delegation")
         }
     }
 }
-
-@Parcelize
-data class SimInfo(
-    val subId: Int,
-    val displayName: String,
-    val carrierName: String,
-    val simSlotIndex: Int,
-) : Parcelable

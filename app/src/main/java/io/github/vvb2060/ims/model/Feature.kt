@@ -1,64 +1,66 @@
-package io.github.vvb2060.ims
+package io.github.vvb2060.ims.model
+
+import io.github.vvb2060.ims.R
 
 enum class Feature(
-    val key: String,
     val valueType: FeatureValueType,
     val showTitleRes: Int,
     val showDescriptionRes: Int,
+    val defaultValue: Any,
 ) {
     CARRIER_NAME(
-        "carrier_name",
         FeatureValueType.STRING,
         R.string.carrier_name,
         R.string.carrier_name_desc,
+        "",
     ),
     VOLTE(
-        "volte",
         FeatureValueType.BOOLEAN,
         R.string.volte,
         R.string.volte_desc,
+        true,
     ),
     VOWIFI(
-        "vowifi",
         FeatureValueType.BOOLEAN,
         R.string.vowifi,
         R.string.vowifi_desc,
+        true,
     ),
     VT(
-        "vt",
         FeatureValueType.BOOLEAN,
         R.string.vt,
         R.string.vt_desc,
+        true,
     ),
     VONR(
-        "vonr",
         FeatureValueType.BOOLEAN,
         R.string.vonr,
         R.string.vonr_desc,
+        true,
     ),
     CROSS_SIM(
-        "cross_sim",
         FeatureValueType.BOOLEAN,
         R.string.cross_sim,
         R.string.cross_sim_desc,
+        true,
     ),
     UT(
-        "ut",
         FeatureValueType.BOOLEAN,
         R.string.ut,
         R.string.ut_desc,
+        true,
     ),
     FIVE_G_NR(
-        "5g_nr",
         FeatureValueType.BOOLEAN,
         R.string._5g_nr,
         R.string._5g_nr_desc,
+        true,
     ),
     FIVE_G_THRESHOLDS(
-        "5g_thresholds",
         FeatureValueType.BOOLEAN,
         R.string._5g_thresholds,
         R.string._5g_thresholds_desc,
+        true,
     )
 }
 

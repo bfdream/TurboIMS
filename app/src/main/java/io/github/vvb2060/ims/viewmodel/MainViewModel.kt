@@ -2,59 +2,31 @@ package io.github.vvb2060.ims.viewmodel
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Parcel
-import android.os.Parcelable
-import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
-import com.android.internal.telephony.ISub
-import io.github.vvb2060.ims.Feature
-import io.github.vvb2060.ims.FeatureValueType
-import io.github.vvb2060.ims.ImsModifier
+import io.github.vvb2060.ims.BuildConfig
+import io.github.vvb2060.ims.R
 import io.github.vvb2060.ims.ShizukuProvider
+import io.github.vvb2060.ims.model.Feature
+import io.github.vvb2060.ims.model.ShizukuStatus
+import io.github.vvb2060.ims.model.SimSelection
+import io.github.vvb2060.ims.model.SystemInfo
+import io.github.vvb2060.ims.privileged.ImsModifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
-import rikka.shizuku.ShizukuBinderWrapper
-import rikka.shizuku.SystemServiceHelper
-
-private const val PREFS_NAME = "ims_config"
-
-enum class ShizukuStatus {
-    CHECKING,
-    NOT_RUNNING,
-    NO_PERMISSION,
-    READY,
-    NEED_UPDATE,
-}
-
-data class SimSelection(
-    val subId: Int,
-    val displayName: String,
-    val carrierName: String,
-    val simSlotIndex: Int,
-    val showTitle: String = buildString {
-        append("SIM ")
-        append(simSlotIndex + 1)
-        append(": ")
-        append(displayName)
-        append(" (${carrierName})")
-    }
-)
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    companion object {
-        private const val TAG = "MainViewModel"
-    }
+    private var toast: Toast? = null
 
-    private val _androidVersion = MutableStateFlow("")
-    val androidVersion: StateFlow<String> = _androidVersion.asStateFlow()
+    private val _systemInfo = MutableStateFlow(SystemInfo())
+    val systemInfo: StateFlow<SystemInfo> = _systemInfo.asStateFlow()
 
     private val _shizukuStatus = MutableStateFlow(ShizukuStatus.CHECKING)
     val shizukuStatus: StateFlow<ShizukuStatus> = _shizukuStatus.asStateFlow()
@@ -62,19 +34,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _allSimList = MutableStateFlow<List<SimSelection>>(emptyList())
     val allSimList: StateFlow<List<SimSelection>> = _allSimList.asStateFlow()
 
-    private val _featureSwitches = MutableStateFlow<Map<Feature, Any>>(emptyMap())
-    val featureSwitches: StateFlow<Map<Feature, Any>> = _featureSwitches.asStateFlow()
-
-    private val prefs: SharedPreferences =
-        application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs = application.getSharedPreferences("ims_config", Context.MODE_PRIVATE)
 
     private val binderListener = Shizuku.OnBinderReceivedListener { updateShizukuStatus() }
     private val binderDeadListener = Shizuku.OnBinderDeadListener { updateShizukuStatus() }
 
     init {
         loadSimList()
-        loadPreferences()
-        updateAndroidVersionInfo()
+        loadSystemInfo()
         updateShizukuStatus()
         Shizuku.addBinderReceivedListener(binderListener)
         Shizuku.addBinderDeadListener(binderDeadListener)
@@ -110,61 +77,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun loadPreferences() {
-        viewModelScope.launch {
-            val featureSwitches = linkedMapOf<Feature, Any>()
-            for (feature in Feature.entries) {
-                when (feature.valueType) {
-                    FeatureValueType.STRING -> {
-                        featureSwitches.put(feature, prefs.getString(feature.key, "")!!)
-                    }
-
-                    FeatureValueType.BOOLEAN -> {
-                        featureSwitches.put(feature, prefs.getBoolean(feature.key, true))
-                    }
-                }
-            }
-            _featureSwitches.value = featureSwitches
+    fun loadDefaultPreferences(): Map<Feature, Any> {
+        val featureSwitches = linkedMapOf<Feature, Any>()
+        for (feature in Feature.entries) {
+            featureSwitches.put(feature, feature.defaultValue)
         }
+        return featureSwitches
     }
 
     fun loadSimList() {
         viewModelScope.launch {
             val simInfoList = ShizukuProvider.readSimInfoList(application)
-            val resultList = simInfoList.map {
-                SimSelection(
-                    it.subId,
-                    it.displayName,
-                    it.carrierName,
-                    it.simSlotIndex,
-                )
-            }.toMutableList()
-            resultList.add(0, SimSelection(-1, "", "", -1, "所有SIM"))
+            val resultList = simInfoList.toMutableList()
+            val title = application.getString(R.string.all_sim)
+            resultList.add(0, SimSelection(-1, "", "", -1, title))
             _allSimList.value = resultList
         }
     }
 
-    private fun updateAndroidVersionInfo() {
+    private fun loadSystemInfo() {
         viewModelScope.launch {
-            val version = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"
-            _androidVersion.value = version
+            _systemInfo.value = SystemInfo(
+                appVersionName = BuildConfig.VERSION_NAME,
+                androidVersion = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+                systemVersion = Build.DISPLAY,
+                securityPatchVersion = Build.VERSION.SECURITY_PATCH,
+            )
         }
     }
 
-    fun onFeatureSwitchChange(feature: Feature, value: Any) {
-        Log.d(TAG, "onFeatureSwitchChange: $feature, $value")
+    fun onApplyConfiguration(selectedSim: SimSelection, map: Map<Feature, Any>) {
         viewModelScope.launch {
-            val updatedSwitches = _featureSwitches.value.toMutableMap()
-            updatedSwitches[feature] = value
-            _featureSwitches.value = updatedSwitches
-        }
-    }
-
-    fun onApplyConfiguration(selectedSim: SimSelection) {
-        viewModelScope.launch {
-            val map = _featureSwitches.value
-            val selectedSubId = selectedSim.subId
-            val carrierName = map[Feature.CARRIER_NAME] as String?
+            val carrierName =
+                if (selectedSim.subId == -1) null else map[Feature.CARRIER_NAME] as String?
             val enableVoLTE = map.getOrDefault(Feature.VOLTE, true) as Boolean
             val enableVoWiFi = map.getOrDefault(Feature.VOWIFI, true) as Boolean
             val enableVT = map.getOrDefault(Feature.VT, true) as Boolean
@@ -185,13 +130,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 enable5GNR,
                 enable5GThreshold
             )
-            bundle.putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, selectedSubId)
+            bundle.putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, selectedSim.subId)
 
-            val result = ShizukuProvider.overrideImsConfig(application, bundle)
+            val resultMsg = ShizukuProvider.overrideImsConfig(application, bundle)
+            if (resultMsg == null) {
+                toast(application.getString(R.string.config_success_message))
+            } else {
+                toast(application.getString(R.string.config_failed, resultMsg), false)
+            }
         }
     }
 
-    fun onResetConfiguration(context: Context) {
-        ShizukuProvider.startInstrument(context, true)
+    fun onResetConfiguration(selectedSim: SimSelection) {
+        viewModelScope.launch {
+            val bundle = ImsModifier.buildResetBundle()
+            bundle.putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, selectedSim.subId)
+            val resultMsg = ShizukuProvider.overrideImsConfig(application, bundle)
+            if (resultMsg == null) {
+                toast(application.getString(R.string.config_success_reset_message))
+            } else {
+                toast(application.getString(R.string.config_failed, resultMsg), false)
+            }
+        }
     }
+
+    private fun toast(msg: String, short: Boolean = true) {
+        toast?.cancel()
+        toast =
+            Toast.makeText(application, msg, if (short) Toast.LENGTH_SHORT else Toast.LENGTH_LONG)
+        toast?.show()
+    }
+
 }

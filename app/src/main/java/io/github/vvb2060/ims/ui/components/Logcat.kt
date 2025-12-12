@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -42,8 +43,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.vvb2060.ims.LogEntry
-import io.github.vvb2060.ims.LogLevel
+import io.github.vvb2060.ims.model.LogEntry
+import io.github.vvb2060.ims.model.LogLevel
 
 @Composable
 fun LogList(
@@ -70,6 +71,7 @@ fun LogList(
                 LogItem(
                     level = log.level,
                     timeText = log.time,
+                    tagText = log.tag ?: "",
                     contentText = log.content,
                     modifier = Modifier.fillMaxWidth(),
                     textColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -87,6 +89,7 @@ fun LogItem(
     modifier: Modifier = Modifier,
     level: LogLevel,
     timeText: String,
+    tagText: String,
     contentText: String,
     textColor: Color,
 ) {
@@ -110,16 +113,23 @@ fun LogItem(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
+                    modifier = Modifier.offset(y = (-1.5).dp)
                 )
             }
-
             Spacer(modifier = Modifier.width(4.dp))
-
             Text(
                 text = timeText,
                 fontSize = 12.sp,
                 color = textColor,
             )
+            if (tagText.isNotBlank()) {
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = tagText,
+                    fontSize = 12.sp,
+                    color = textColor,
+                )
+            }
         }
 
         Text(

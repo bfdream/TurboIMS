@@ -7,8 +7,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
 import android.os.ServiceManager
+import android.telephony.SubscriptionInfo
 import android.util.Log
-import io.github.vvb2060.ims.privileged.SimInfo
+import io.github.vvb2060.ims.model.SimSelection
+import io.github.vvb2060.ims.privileged.ImsModifier
 import io.github.vvb2060.ims.privileged.SimReader
 import kotlinx.coroutines.CompletableDeferred
 import org.lsposed.hiddenapibypass.LSPass
@@ -25,24 +27,35 @@ class ShizukuProvider : ShizukuProvider() {
     companion object {
         private const val TAG = "ShizukuProvider"
 
-        suspend fun overrideImsConfig(context: Context, data: Bundle): Boolean {
+        suspend fun overrideImsConfig(context: Context, data: Bundle): String? {
             val result = startInstrumentation(context, ImsModifier::class.java, data, true)
             if (result == null) {
                 Log.w(TAG, "overrideImsConfig: failed with empty result")
-                return false
+                return "failed with empty result"
             }
-            return result.getBoolean(ImsModifier.BUNDLE_RESULT)
+            if (result.getBoolean(ImsModifier.BUNDLE_RESULT)) {
+                return null
+            }
+            return result.getString(ImsModifier.BUNDLE_RESULT_MSG)
         }
 
-        suspend fun readSimInfoList(context: Context): List<SimInfo> {
+        suspend fun readSimInfoList(context: Context): List<SimSelection> {
             val result = startInstrumentation(context, SimReader::class.java, null, true)
             if (result == null) {
                 Log.w(TAG, "readSimInfoList: failed with empty result")
                 return emptyList()
             }
-            val resultList =
-                result.getParcelableArrayList(SimReader.BUNDLE_RESULT, SimInfo::class.java)
-            return resultList!!
+            val subList =
+                result.getParcelableArrayList(SimReader.BUNDLE_RESULT, SubscriptionInfo::class.java)
+            val resultList = subList?.map {
+                SimSelection(
+                    it.subscriptionId,
+                    it.displayName.toString(),
+                    it.carrierName.toString(),
+                    it.simSlotIndex,
+                )
+            } ?: emptyList()
+            return resultList
         }
 
         private suspend fun startInstrumentation(
@@ -83,9 +96,8 @@ class ShizukuProvider : ShizukuProvider() {
                 Log.i(TAG, "instrumentation started successfully")
                 if (receiveResult) {
                     return deferredResult.await()
-                } else {
-                    return null
                 }
+                return null
             } catch (e: Exception) {
                 Log.e(TAG, "failed to start instrumentation", e)
                 return null

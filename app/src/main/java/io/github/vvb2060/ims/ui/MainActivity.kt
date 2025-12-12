@@ -1,12 +1,7 @@
 package io.github.vvb2060.ims.ui
 
 import android.content.Intent
-import android.os.Build
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,12 +23,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.rounded.Cached
+import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +44,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -67,147 +63,142 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import io.github.vvb2060.ims.BuildConfig
-import io.github.vvb2060.ims.Feature
-import io.github.vvb2060.ims.FeatureValueType
 import io.github.vvb2060.ims.R
-import io.github.vvb2060.ims.ui.theme.TurbolImsTheme
+import io.github.vvb2060.ims.model.Feature
+import io.github.vvb2060.ims.model.FeatureValueType
+import io.github.vvb2060.ims.model.ShizukuStatus
+import io.github.vvb2060.ims.model.SimSelection
+import io.github.vvb2060.ims.model.SystemInfo
 import io.github.vvb2060.ims.viewmodel.MainViewModel
-import io.github.vvb2060.ims.viewmodel.ShizukuStatus
-import io.github.vvb2060.ims.viewmodel.SimSelection
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
-class MainActivity : ComponentActivity() {
+class MainActivity : BaseActivity() {
     private val viewModel: MainViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-        setContent {
-            TurbolImsTheme {
-                val context = LocalContext.current
-                val uriHandler = LocalUriHandler.current
+    @Composable
+    override fun content() {
+        val context = LocalContext.current
 
-                val scrollBehavior =
-                    TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+        val scrollBehavior =
+            TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
-                val androidVersion by viewModel.androidVersion.collectAsStateWithLifecycle()
-                val shizukuStatus by viewModel.shizukuStatus.collectAsStateWithLifecycle()
-                val allSimList by viewModel.allSimList.collectAsStateWithLifecycle()
-                val featureSwitches by viewModel.featureSwitches.collectAsStateWithLifecycle()
+        val systemInfo by viewModel.systemInfo.collectAsStateWithLifecycle()
+        val shizukuStatus by viewModel.shizukuStatus.collectAsStateWithLifecycle()
+        val allSimList by viewModel.allSimList.collectAsStateWithLifecycle()
 
-                var selectedSim by remember { mutableStateOf<SimSelection?>(null) }
-                var showShizukuUpdateDialog by remember { mutableStateOf(false) }
+        var selectedSim by remember { mutableStateOf<SimSelection?>(null) }
+        var showShizukuUpdateDialog by remember { mutableStateOf(false) }
+        val featureSwitches = remember { mutableStateMapOf<Feature, Any>() }
 
-                LaunchedEffect(shizukuStatus) {
-                    if (shizukuStatus == ShizukuStatus.NEED_UPDATE) {
-                        showShizukuUpdateDialog = true
-                    }
-                }
-                LaunchedEffect(allSimList) {
-                    if (selectedSim == null) {
-                        selectedSim = allSimList.firstOrNull()
-                    }
-                }
+        LaunchedEffect(shizukuStatus) {
+            if (shizukuStatus == ShizukuStatus.NEED_UPDATE) {
+                showShizukuUpdateDialog = true
+            }
+        }
+        LaunchedEffect(allSimList) {
+            if (selectedSim == null) {
+                selectedSim = allSimList.firstOrNull()
+            }
+        }
+        LaunchedEffect(Unit) {
+            featureSwitches.putAll(viewModel.loadDefaultPreferences())
+        }
 
-                Scaffold(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    contentWindowInsets = WindowInsets(0.dp),
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            title = {
-                                Row(
-                                    verticalAlignment = Alignment.Bottom,
-                                ) {
-                                    Text(
-                                        stringResource(id = R.string.app_name),
-                                        fontSize = 28.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        stringResource(id = R.string.for_pixel),
-                                        fontSize = 14.sp,
-                                        fontFamily = FontFamily.Monospace
-                                    )
-                                }
-                            },
-                            scrollBehavior = scrollBehavior,
-                            actions = {
-                                IconButton(onClick = {
-                                    startActivity(
-                                        Intent(
-                                            this@MainActivity,
-                                            LogcatActivity::class.java
-                                        )
-                                    )
-                                }) {
-                                    Icon(imageVector = Icons.Default.BugReport, null)
-                                }
-                                IconButton(onClick = {
-                                    uriHandler.openUri("https://github.com/Mystery00/TurboIMS")
-                                }) {
-                                    Icon(painterResource(R.drawable.ic_github), null)
-                                }
-                            },
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            contentWindowInsets = WindowInsets(0.dp),
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.Bottom,
+                        ) {
+                            Text(
+                                stringResource(id = R.string.app_name),
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                stringResource(id = R.string.for_pixel),
+                                fontSize = 14.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                )
+            }) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                SystemInfoCard(
+                    systemInfo,
+                    shizukuStatus,
+                    onRefresh = {
+                        viewModel.updateShizukuStatus()
+                        viewModel.loadSimList()
+                    },
+                    onRequestShizukuPermission = {
+                        viewModel.requestShizukuPermission(0)
+                    },
+                    onLogcatClick = {
+                        startActivity(
+                            Intent(
+                                this@MainActivity,
+                                LogcatActivity::class.java
+                            )
                         )
-                    }) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .consumeWindowInsets(innerPadding)
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        SystemInfoCard(
-                            androidVersion,
-                            shizukuStatus,
-                            onRefresh = {
-                                viewModel.updateShizukuStatus()
-                                viewModel.loadSimList()
-                            },
-                            onRequestShizukuPermission = {
-                                viewModel.requestShizukuPermission(0)
-                            },
-                        )
-                        SimCardSelectionCard(selectedSim, allSimList, onSelectSim = {
-                            selectedSim = it
-                        }, onRefreshSimList = {
-                            viewModel.loadSimList()
-                        })
-                        FeaturesCard(featureSwitches, viewModel::onFeatureSwitchChange)
-                        ApplyButton(selectedSim != null) {
-                            if (shizukuStatus != ShizukuStatus.READY) {
-                                Toast.makeText(
-                                    context,
-                                    R.string.shizuku_not_running_msg,
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                return@ApplyButton
-                            }
-                            viewModel.onApplyConfiguration(context, selectedSim!!)
-                        }
-                        ResetButton {
-                            if (shizukuStatus != ShizukuStatus.READY) {
-                                Toast.makeText(
-                                    context,
-                                    R.string.shizuku_not_running_msg,
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                return@ResetButton
-                            }
-                            viewModel.onResetConfiguration(context)
-                        }
-                        Tips()
-                        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                    },
+                )
+                SimCardSelectionCard(selectedSim, allSimList, onSelectSim = {
+                    selectedSim = it
+                }, onRefreshSimList = {
+                    viewModel.loadSimList()
+                })
+                FeaturesCard(
+                    selectedSim?.subId != -1,
+                    featureSwitches,
+                    onFeatureSwitchChange = { feature, value ->
+                        featureSwitches[feature] = value
+                    },
+                    resetFeatures = {
+                        featureSwitches.clear()
+                        featureSwitches.putAll(viewModel.loadDefaultPreferences())
+                    }
+                )
+                ApplyButton(selectedSim != null) {
+                    if (shizukuStatus != ShizukuStatus.READY) {
+                        Toast.makeText(
+                            context,
+                            R.string.shizuku_not_running_msg,
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@ApplyButton
+                    }
+                    viewModel.onApplyConfiguration(selectedSim!!, featureSwitches)
+                }
+                ResetButton {
+                    if (shizukuStatus != ShizukuStatus.READY) {
+                        Toast.makeText(
+                            context,
+                            R.string.shizuku_not_running_msg,
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@ResetButton
+                    }
+                    viewModel.onResetConfiguration(selectedSim!!)
+                }
+                Tips()
+                Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
 
-                        if (showShizukuUpdateDialog) {
-                            ShizukuUpdateDialog {
-                                showShizukuUpdateDialog = false
-                            }
-                        }
+                if (showShizukuUpdateDialog) {
+                    ShizukuUpdateDialog {
+                        showShizukuUpdateDialog = false
                     }
                 }
             }
@@ -222,41 +213,54 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun SystemInfoCard(
-    androidVersion: String,
+    systemInfo: SystemInfo,
     shizukuStatus: ShizukuStatus,
     onRefresh: () -> Unit,
     onRequestShizukuPermission: () -> Unit,
+    onLogcatClick: () -> Unit,
 ) {
+    val uriHandler = LocalUriHandler.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(id = R.string.system_info),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.weight(1F))
+                IconButton(onClick = {
+                    uriHandler.openUri("https://github.com/Mystery00/TurboIMS")
+                }) {
+                    Icon(painterResource(R.drawable.ic_github), null)
+                }
+                IconButton(onClick = onLogcatClick) {
+                    Icon(imageVector = Icons.Default.BugReport, null)
+                }
+            }
             Text(
-                stringResource(id = R.string.system_info),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Text(
-                stringResource(R.string.app_version, BuildConfig.VERSION_NAME),
+                stringResource(R.string.app_version, systemInfo.appVersionName),
                 fontSize = 14.sp,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                stringResource(R.string.android_version, androidVersion),
+                stringResource(R.string.android_version, systemInfo.androidVersion),
                 fontSize = 14.sp,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                stringResource(R.string.system_build_version, Build.DISPLAY),
+                stringResource(R.string.system_build_version, systemInfo.systemVersion),
                 fontSize = 14.sp,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                stringResource(R.string.security_patch_version, Build.VERSION.SECURITY_PATCH),
+                stringResource(R.string.security_patch_version, systemInfo.securityPatchVersion),
                 fontSize = 14.sp,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -316,10 +320,8 @@ fun SimCardSelectionCard(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .weight(1F)
-                        .padding(bottom = 16.dp)
                 )
+                Spacer(modifier = Modifier.weight(1F))
                 IconButton(onClick = onRefreshSimList) {
                     Icon(
                         imageVector = Icons.Rounded.Cached,
@@ -350,8 +352,10 @@ fun SimCardSelectionCard(
 
 @Composable
 fun FeaturesCard(
+    showCarrierName: Boolean,
     featureSwitches: Map<Feature, Any>,
     onFeatureSwitchChange: (Feature, Any) -> Unit,
+    resetFeatures: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -359,15 +363,29 @@ fun FeaturesCard(
             .padding(16.dp),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                stringResource(id = R.string.features_config),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(id = R.string.features_config),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.weight(1F))
+                IconButton(onClick = resetFeatures) {
+                    Icon(
+                        imageVector = Icons.Rounded.SettingsBackupRestore,
+                        contentDescription = "Reload"
+                    )
+                }
+            }
 
-            Feature.entries.forEachIndexed { index, feature ->
+            val showFeatures = Feature.entries.toMutableList()
+            if (!showCarrierName) {
+                showFeatures.remove(Feature.CARRIER_NAME)
+            }
+            showFeatures.forEachIndexed { index, feature ->
                 val title = stringResource(feature.showTitleRes)
                 val description = stringResource(feature.showDescriptionRes)
                 when (feature.valueType) {
@@ -420,6 +438,7 @@ fun StringFeatureItem(
             value = input,
             onValueChange = {
                 input = it
+                onInputChange(it)
             },
             label = {
                 Text(
@@ -442,13 +461,6 @@ fun StringFeatureItem(
                 }
             ),
         )
-        IconButton(
-            onClick = {
-                onInputChange(input)
-            }
-        ) {
-            Icon(painterResource(R.drawable.ic_done), null)
-        }
     }
 }
 

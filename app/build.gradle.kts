@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.parcelize)
 }
 
 val packageName = "io.github.vvb2060.ims"
@@ -29,7 +28,6 @@ kotlin {
     compilerOptions {
         optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
         optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
-        optIn.add("com.google.accompanist.permissions.ExperimentalPermissionsApi")
     }
 }
 
@@ -55,8 +53,6 @@ android {
     }
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "TurboIMS-debug")
             isMinifyEnabled = false
             isShrinkResources = false
             @Suppress("UnstableApiUsage")
@@ -112,7 +108,6 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.androidx.splashscreen)
     implementation(libs.lifecycle.viewmodel.ktx)
-    implementation(libs.accompanist.permissions)
 }
 
 apply(from = rootProject.file("signing.gradle"))

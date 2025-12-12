@@ -1,4 +1,4 @@
-package io.github.vvb2060.ims
+package io.github.vvb2060.ims.privileged
 
 import android.app.Activity
 import android.app.IActivityManager
@@ -12,14 +12,22 @@ import android.system.Os
 import android.telephony.CarrierConfigManager
 import android.telephony.SubscriptionManager
 import android.util.Log
+import io.github.vvb2060.ims.LogcatRepository
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
+import kotlin.math.max
 
 class ImsModifier : Instrumentation() {
     companion object Companion {
-        private const val TAG = "PrivilegedProcess"
+        private const val TAG = "ImsModifier"
         const val BUNDLE_SELECT_SIM_ID = "select_sim_id"
+        const val BUNDLE_RESET = "reset"
         const val BUNDLE_RESULT = "result"
+        const val BUNDLE_RESULT_MSG = "result_msg"
+
+        fun buildResetBundle(): Bundle = Bundle().apply {
+            putBoolean(BUNDLE_RESET, true)
+        }
 
         fun buildBundle(
             carrierName: String?,
@@ -120,26 +128,42 @@ class ImsModifier : Instrumentation() {
 
     override fun onCreate(arguments: Bundle) {
         // 等待 Shizuku binder 准备好
+        var index = 0
         val maxRetries = 50 // 最多等待 5 秒
-        for (i in 0..<maxRetries) {
-            if (Shizuku.pingBinder()) {
-                Log.i(TAG, "shizuku binder is ready")
-                break
-            }
+        while (!Shizuku.pingBinder()) {
+            index++
+            Log.d(TAG, "wait for shizuku binder ready")
             try {
                 Thread.sleep(100)
             } catch (_: InterruptedException) {
                 break
             }
+            if (index >= maxRetries) {
+                break
+            }
         }
-
         val results = Bundle()
+        if (index >= maxRetries) {
+            results.putBoolean(BUNDLE_RESULT, false)
+            results.putString(BUNDLE_RESULT_MSG, "shizuku binder is not ready")
+            finish(Activity.RESULT_OK, results)
+            return
+        }
+        Log.i(TAG, "shizuku binder is ready")
+
         try {
             overrideConfig(arguments)
+            if (LogcatRepository.isCapturing()) {
+                Log.i(TAG, "overrideConfig success")
+            }
             results.putBoolean(BUNDLE_RESULT, true)
         } catch (t: Throwable) {
+            if (LogcatRepository.isCapturing()) {
+                Log.i(TAG, "overrideConfig failed")
+            }
             Log.e(TAG, "failed to override config", t)
             results.putBoolean(BUNDLE_RESULT, false)
+            results.putString(BUNDLE_RESULT_MSG, t.message ?: t.javaClass.simpleName)
         }
         finish(Activity.RESULT_OK, results)
     }
@@ -164,23 +188,29 @@ class ImsModifier : Instrumentation() {
                 // 只应用到选中的 SIM 卡
                 intArrayOf(selectedSubId)
             }
-
-            val values = arguments.toPersistableBundle()
+            val reset = arguments.getBoolean(BUNDLE_RESET, false)
+            arguments.remove(BUNDLE_RESET)
+            val values = if (reset) null else arguments.toPersistableBundle()
             for (subId in subIds) {
+                if (LogcatRepository.isCapturing()) {
+                    Log.i(TAG, "overrideConfig for subId $subId with values $values")
+                } else {
+                    Log.d(TAG, "overrideConfig for subId $subId")
+                }
                 // 使用反射调用 overrideConfig
                 try {
-                    cm.javaClass.getMethod(
-                        "overrideConfig",
-                        Int::class.javaPrimitiveType,
-                        PersistableBundle::class.java
-                    ).invoke(cm, subId, values)
-                } catch (_: NoSuchMethodException) {
                     cm.javaClass.getMethod(
                         "overrideConfig",
                         Int::class.javaPrimitiveType,
                         PersistableBundle::class.java,
                         Boolean::class.javaPrimitiveType
                     ).invoke(cm, subId, values, false)
+                } catch (_: NoSuchMethodException) {
+                    cm.javaClass.getMethod(
+                        "overrideConfig",
+                        Int::class.javaPrimitiveType,
+                        PersistableBundle::class.java
+                    ).invoke(cm, subId, values)
                 }
             }
         } finally {
@@ -189,7 +219,7 @@ class ImsModifier : Instrumentation() {
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("UNCHECKED_CAST", "DEPRECATION")
     fun Bundle.toPersistableBundle(): PersistableBundle {
         val pb = PersistableBundle()
 
