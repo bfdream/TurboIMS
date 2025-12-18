@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.rounded.Cached
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -99,8 +100,16 @@ class MainActivity : BaseActivity() {
                 selectedSim = allSimList.firstOrNull()
             }
         }
-        LaunchedEffect(Unit) {
-            featureSwitches.putAll(viewModel.loadDefaultPreferences())
+        LaunchedEffect(selectedSim) {
+            if (selectedSim != null) {
+                featureSwitches.clear()
+                val savedConfig = viewModel.loadConfiguration(selectedSim!!.subId)
+                if (savedConfig != null) {
+                    featureSwitches.putAll(savedConfig)
+                } else {
+                    featureSwitches.putAll(viewModel.loadDefaultPreferences())
+                }
+            }
         }
 
         Scaffold(
@@ -165,6 +174,15 @@ class MainActivity : BaseActivity() {
                     featureSwitches,
                     onFeatureSwitchChange = { feature, value ->
                         featureSwitches[feature] = value
+                    },
+                    loadFeatureHistory = {
+                        featureSwitches.clear()
+                        val savedConfig = selectedSim?.let { viewModel.loadConfiguration(it.subId) }
+                        if (savedConfig != null) {
+                            featureSwitches.putAll(savedConfig)
+                        } else {
+                            featureSwitches.putAll(viewModel.loadDefaultPreferences())
+                        }
                     },
                     resetFeatures = {
                         featureSwitches.clear()
@@ -355,6 +373,7 @@ fun FeaturesCard(
     showCarrierName: Boolean,
     featureSwitches: Map<Feature, Any>,
     onFeatureSwitchChange: (Feature, Any) -> Unit,
+    loadFeatureHistory: () -> Unit,
     resetFeatures: () -> Unit,
 ) {
     Card(
@@ -373,6 +392,12 @@ fun FeaturesCard(
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(modifier = Modifier.weight(1F))
+                IconButton(onClick = loadFeatureHistory) {
+                    Icon(
+                        imageVector = Icons.Rounded.History,
+                        contentDescription = "Load History"
+                    )
+                }
                 IconButton(onClick = resetFeatures) {
                     Icon(
                         imageVector = Icons.Rounded.SettingsBackupRestore,

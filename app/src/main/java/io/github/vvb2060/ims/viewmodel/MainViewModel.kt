@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
@@ -12,6 +13,7 @@ import io.github.vvb2060.ims.BuildConfig
 import io.github.vvb2060.ims.R
 import io.github.vvb2060.ims.ShizukuProvider
 import io.github.vvb2060.ims.model.Feature
+import io.github.vvb2060.ims.model.FeatureValueType
 import io.github.vvb2060.ims.model.ShizukuStatus
 import io.github.vvb2060.ims.model.SimSelection
 import io.github.vvb2060.ims.model.SystemInfo
@@ -106,6 +108,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onApplyConfiguration(selectedSim: SimSelection, map: Map<Feature, Any>) {
         viewModelScope.launch {
+            saveConfiguration(selectedSim.subId, map)
+
             val carrierName =
                 if (selectedSim.subId == -1) null else map[Feature.CARRIER_NAME] as String?
             val countryISO =
@@ -140,6 +144,43 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 toast(application.getString(R.string.config_failed, resultMsg), false)
             }
         }
+    }
+
+    private fun saveConfiguration(subId: Int, map: Map<Feature, Any>) {
+        application.getSharedPreferences("sim_config_$subId", Context.MODE_PRIVATE).edit {
+            clear() // Clear old config for this SIM
+            map.forEach { (feature, value) ->
+                when (value) {
+                    is Boolean -> putBoolean(feature.name, value)
+                    is String -> putString(feature.name, value)
+                }
+            }
+        }
+    }
+
+    fun loadConfiguration(subId: Int): Map<Feature, Any>? {
+        val prefs = application.getSharedPreferences("sim_config_$subId", Context.MODE_PRIVATE)
+        if (prefs.all.isEmpty()) return null
+
+        val map = linkedMapOf<Feature, Any>()
+        Feature.entries.forEach { feature ->
+            if (prefs.contains(feature.name)) {
+                when (feature.valueType) {
+                    FeatureValueType.BOOLEAN -> {
+                        map[feature] =
+                            prefs.getBoolean(feature.name, feature.defaultValue as Boolean)
+                    }
+
+                    FeatureValueType.STRING -> {
+                        map[feature] =
+                            prefs.getString(feature.name, feature.defaultValue as String) ?: ""
+                    }
+                }
+            } else {
+                map[feature] = feature.defaultValue
+            }
+        }
+        return map
     }
 
     fun onResetConfiguration(selectedSim: SimSelection) {
