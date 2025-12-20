@@ -202,11 +202,7 @@ class ImsModifier : Instrumentation() {
             arguments.remove(BUNDLE_RESET)
             val values = if (reset) null else arguments.toPersistableBundle()
             for (subId in subIds) {
-                if (BuildConfig.DEBUG || LogcatRepository.isCapturing()) {
-                    Log.i(TAG, "overrideConfig for subId $subId with values $values")
-                } else {
-                    Log.d(TAG, "overrideConfig for subId $subId")
-                }
+                Log.i(TAG, "overrideConfig for subId $subId with values $values")
                 // 使用反射调用 overrideConfig
                 try {
                     cm.javaClass.getMethod(

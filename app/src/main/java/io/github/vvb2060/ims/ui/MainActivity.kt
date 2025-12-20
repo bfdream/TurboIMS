@@ -49,7 +49,6 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -170,9 +169,10 @@ class MainActivity : BaseActivity() {
                     selectedSim = it
                 }, onRefreshSimList = {
                     viewModel.loadSimList()
+                    Toast.makeText(context, R.string.sim_list_refresh, Toast.LENGTH_SHORT).show()
                 })
                 FeaturesCard(
-                    selectedSim?.subId != -1,
+                    isSelectAllSim = selectedSim?.subId == -1,
                     featureSwitches,
                     onFeatureSwitchChange = { feature, value ->
                         featureSwitches[feature] = value
@@ -182,13 +182,16 @@ class MainActivity : BaseActivity() {
                         val savedConfig = selectedSim?.let { viewModel.loadConfiguration(it.subId) }
                         if (savedConfig != null) {
                             featureSwitches.putAll(savedConfig)
+                            Toast.makeText(context, R.string.load_config_history_success, Toast.LENGTH_SHORT).show()
                         } else {
                             featureSwitches.putAll(viewModel.loadDefaultPreferences())
+                            Toast.makeText(context, R.string.load_config_default_success, Toast.LENGTH_SHORT).show()
                         }
                     },
                     resetFeatures = {
                         featureSwitches.clear()
                         featureSwitches.putAll(viewModel.loadDefaultPreferences())
+                        Toast.makeText(context, R.string.load_config_default_success, Toast.LENGTH_SHORT).show()
                     }
                 )
                 ApplyButton(selectedSim != null) {
@@ -231,6 +234,10 @@ class MainActivity : BaseActivity() {
     }
 }
 
+/**
+ *系统信息卡片
+ * 显示软件版本、Android 版本、Shizuku 状态等。
+ */
 @Composable
 fun SystemInfoCard(
     systemInfo: SystemInfo,
@@ -266,6 +273,11 @@ fun SystemInfoCard(
             }
             Text(
                 stringResource(R.string.app_version, systemInfo.appVersionName),
+                fontSize = 14.sp,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.device_model, systemInfo.deviceModel),
                 fontSize = 14.sp,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -319,6 +331,10 @@ fun SystemInfoCard(
     }
 }
 
+/**
+ * SIM 卡选择卡片
+ * 列出所有可用的 SIM 卡供用户选择。
+ */
 @Composable
 fun SimCardSelectionCard(
     selectedSim: SimSelection?,
@@ -370,9 +386,13 @@ fun SimCardSelectionCard(
     }
 }
 
+/**
+ * 此时功能配置卡片
+ * 动态加载并显示所支持的 IMS 功能开关。
+ */
 @Composable
 fun FeaturesCard(
-    showCarrierName: Boolean,
+    isSelectAllSim: Boolean,
     featureSwitches: Map<Feature, FeatureValue>,
     onFeatureSwitchChange: (Feature, FeatureValue) -> Unit,
     loadFeatureHistory: () -> Unit,
@@ -394,11 +414,13 @@ fun FeaturesCard(
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(modifier = Modifier.weight(1F))
-                IconButton(onClick = loadFeatureHistory) {
-                    Icon(
-                        imageVector = Icons.Rounded.History,
-                        contentDescription = "Load History"
-                    )
+                if (!isSelectAllSim) {
+                    IconButton(onClick = loadFeatureHistory) {
+                        Icon(
+                            imageVector = Icons.Rounded.History,
+                            contentDescription = "Load History"
+                        )
+                    }
                 }
                 IconButton(onClick = resetFeatures) {
                     Icon(
@@ -409,7 +431,7 @@ fun FeaturesCard(
             }
 
             val showFeatures = Feature.entries.toMutableList()
-            if (!showCarrierName) {
+            if (isSelectAllSim) {
                 showFeatures.remove(Feature.CARRIER_NAME)
                 showFeatures.remove(Feature.COUNTRY_ISO)
             }

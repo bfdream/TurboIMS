@@ -4,10 +4,11 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import io.github.vvb2060.ims.BuildConfig
 import io.github.vvb2060.ims.R
@@ -25,18 +26,26 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
+/**
+ * 主界面的 ViewModel，负责管理 UI 状态和业务逻辑。
+ * 包括 Shizuku 状态监听、系统信息加载、SIM 卡信息加载以及 IMS 配置的读写。
+ */
+class MainViewModel(private val application: Application) : AndroidViewModel(application) {
     private var toast: Toast? = null
 
+    // 系统信息状态流
     private val _systemInfo = MutableStateFlow(SystemInfo())
     val systemInfo: StateFlow<SystemInfo> = _systemInfo.asStateFlow()
 
+    // Shizuku 运行状态流
     private val _shizukuStatus = MutableStateFlow(ShizukuStatus.CHECKING)
     val shizukuStatus: StateFlow<ShizukuStatus> = _shizukuStatus.asStateFlow()
 
+    // 所有可用 SIM 卡列表流
     private val _allSimList = MutableStateFlow<List<SimSelection>>(emptyList())
     val allSimList: StateFlow<List<SimSelection>> = _allSimList.asStateFlow()
 
+    // Shizuku Binder 接收监听器（服务连接/授权后触发）
     private val binderListener = Shizuku.OnBinderReceivedListener { updateShizukuStatus() }
     private val binderDeadListener = Shizuku.OnBinderDeadListener { updateShizukuStatus() }
 
@@ -54,6 +63,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         Shizuku.removeBinderDeadListener(binderDeadListener)
     }
 
+    /**
+     * 更新 Shizuku 的当前状态。
+     * 检查服务是否运行、是否需要更新以及权限授予情况。
+     */
     fun updateShizukuStatus() {
         viewModelScope.launch {
             if (Shizuku.isPreV11()) {
@@ -68,6 +81,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 请求 Shizuku 授权。
+     */
     fun requestShizukuPermission(requestCode: Int) {
         viewModelScope.launch {
             if (Shizuku.isPreV11()) {
@@ -78,6 +94,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 加载默认的功能配置。
+     * 当没有保存的配置时使用此默认值。
+     */
     fun loadDefaultPreferences(): Map<Feature, FeatureValue> {
         val featureSwitches = linkedMapOf<Feature, FeatureValue>()
         for (feature in Feature.entries) {
@@ -86,31 +106,46 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return featureSwitches
     }
 
+    /**
+     * 通过 Shizuku 读取设备上的 SIM 卡信息。
+     * 并在列表头部添加“所有 SIM 卡”选项。
+     */
     fun loadSimList() {
         viewModelScope.launch {
             val simInfoList = ShizukuProvider.readSimInfoList(application)
             val resultList = simInfoList.toMutableList()
+            // 添加默认的 "所有 SIM 卡" 选项 (subId = -1)
             val title = application.getString(R.string.all_sim)
             resultList.add(0, SimSelection(-1, "", "", -1, title))
             _allSimList.value = resultList
         }
     }
 
+    /**
+     * 加载当前应用和系统的基本信息。
+     */
     private fun loadSystemInfo() {
         viewModelScope.launch {
             _systemInfo.value = SystemInfo(
                 appVersionName = BuildConfig.VERSION_NAME,
                 androidVersion = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+                deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}",
                 systemVersion = Build.DISPLAY,
                 securityPatchVersion = Build.VERSION.SECURITY_PATCH,
             )
         }
     }
 
+    /**
+     * 应用 IMS 配置到选定的 SIM 卡。
+     * 此操作会调用 ShizukuProvider 进行特权操作，并保存当前配置到本地。
+     */
     fun onApplyConfiguration(selectedSim: SimSelection, map: Map<Feature, FeatureValue>) {
         viewModelScope.launch {
+            // 保存配置到 SharedPreferences
             saveConfiguration(selectedSim.subId, map)
 
+            // 构建传递给底层 ImsModifier 的配置 Bundle
             val carrierName =
                 if (selectedSim.subId == -1) null else map[Feature.CARRIER_NAME]?.data as String?
             val countryISO =
@@ -138,6 +173,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
             bundle.putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, selectedSim.subId)
 
+            // 调用 Shizuku 服务进行实际修改
             val resultMsg = ShizukuProvider.overrideImsConfig(application, bundle)
             if (resultMsg == null) {
                 toast(application.getString(R.string.config_success_message))
@@ -147,9 +183,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 将配置保存到 SharedPreferences 中以便下次加载。
+     */
     private fun saveConfiguration(subId: Int, map: Map<Feature, FeatureValue>) {
         application.getSharedPreferences("sim_config_$subId", Context.MODE_PRIVATE).edit {
-            clear() // Clear old config for this SIM
+            clear() // 清除旧配置
             map.forEach { (feature, value) ->
                 when (value.valueType) {
                     FeatureValueType.BOOLEAN -> putBoolean(feature.name, value.data as Boolean)
@@ -159,6 +198,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 加载指定 subId 的配置。如果不存在则返回 null。
+     */
     fun loadConfiguration(subId: Int): Map<Feature, FeatureValue>? {
         val prefs = application.getSharedPreferences("sim_config_$subId", Context.MODE_PRIVATE)
         if (prefs.all.isEmpty()) return null
@@ -185,6 +227,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return map
     }
 
+    /**
+     * 重置选中 SIM 卡的配置到运营商默认状态。
+     */
     fun onResetConfiguration(selectedSim: SimSelection) {
         viewModelScope.launch {
             val bundle = ImsModifier.buildResetBundle()
@@ -204,5 +249,4 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             Toast.makeText(application, msg, if (short) Toast.LENGTH_SHORT else Toast.LENGTH_LONG)
         toast?.show()
     }
-
 }

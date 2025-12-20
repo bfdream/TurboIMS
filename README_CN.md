@@ -45,7 +45,13 @@ TurboIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（高
 
 ## 要求
 
-- Google Pixel 设备
+- **支持设备**: 搭载 Google Tensor 芯片 (GS101, GS201, Zuma, Zuma Pro) 的 Pixel 设备。
+    - Pixel 6, 6 Pro, 6a
+    - Pixel 7, 7 Pro, 7a
+    - Pixel 8, 8 Pro, 8a
+    - Pixel 9, 9 Pro, 9 Pro XL, 9 Pro Fold
+    - Pixel Fold, Pixel Tablet
+    - **注意:** 搭载 Qualcomm Snapdragon 芯片的设备（Pixel 5 及更早机型）**不支持**。
 - Android 13 或更高版本
 - 已安装并运行 [Shizuku](https://shizuku.rikka.app/zh-CN/)
 

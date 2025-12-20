@@ -31,7 +31,7 @@ enum class Feature(
         FeatureValueType.BOOLEAN,
         R.string.vowifi,
         R.string.vowifi_desc,
-        false,
+        true,
     ),
     VT(
         FeatureValueType.BOOLEAN,

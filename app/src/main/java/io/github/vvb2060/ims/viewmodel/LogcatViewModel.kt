@@ -2,10 +2,12 @@ package io.github.vvb2060.ims.viewmodel
 
 import android.app.Application
 import android.content.Intent
+import android.os.Build
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import io.github.vvb2060.ims.BuildConfig
 import io.github.vvb2060.ims.LogcatRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,7 +27,13 @@ class LogcatViewModel(application: Application) : AndroidViewModel(application) 
     fun exportLogFile() {
         viewModelScope.launch(Dispatchers.IO) {
             File(application.externalCacheDir, "turbo_ims.log").apply {
-                writeText("TurboIms Logcat:\n")
+                writeText("App Version: ${BuildConfig.VERSION_NAME}\n")
+                appendText("Device: ${Build.MANUFACTURER} ${Build.MODEL}\n")
+                appendText("Android Version: Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})\n")
+                appendText("System Build Version: ${Build.DISPLAY}\n")
+                appendText("Security Patch Version: ${Build.VERSION.SECURITY_PATCH}\n")
+                appendText("-----------------------------------------------------------------")
+                appendText("TurboIms Logcat:\n")
                 logs.map { it.raw }.forEach {
                     appendText(it + "\n")
                 }

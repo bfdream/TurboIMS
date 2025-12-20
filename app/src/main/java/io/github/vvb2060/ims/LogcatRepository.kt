@@ -47,7 +47,7 @@ object LogcatRepository {
                         withContext(Dispatchers.Main) {
                             _logs.add(entry)
                             if (_logs.size > 2000) {
-                                _logs.removeFirst()
+                                _logs.removeAt(0)
                             }
                         }
                     }

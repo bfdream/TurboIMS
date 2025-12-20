@@ -6,6 +6,7 @@
     <!-- Main Screen -->
     <string name="system_info">系统信息</string>
     <string name="app_version">应用版本：%s</string>
+    <string name="device_model">设备型号: %s</string>
     <string name="android_version">Android 版本：%s</string>
     <string name="system_build_version">系统版本号：%s</string>
     <string name="security_patch_version">系统安全补丁版本：%s</string>
@@ -64,7 +65,10 @@
     <string name="config_success_message">配置已应用！</string>
     <string name="config_success_reset_message">配置已重置！</string>
     <string name="config_failed">配置失败：%s</string>
+    <string name="load_config_history_success">已加载保存的配置历史</string>
+    <string name="load_config_default_success">已加载默认配置</string>
     <string name="update_shizuku">请更新 Shizuku 到最新版本</string>
+    <string name="sim_list_refresh">SIM卡列表已刷新</string>
 
     <!-- Logcat -->
     <string name="title_filter_log_level">请选择日志过滤等级</string>
