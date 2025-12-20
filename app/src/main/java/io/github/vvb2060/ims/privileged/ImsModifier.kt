@@ -12,7 +12,6 @@ import android.system.Os
 import android.telephony.CarrierConfigManager
 import android.telephony.SubscriptionManager
 import android.util.Log
-import io.github.vvb2060.ims.BuildConfig
 import io.github.vvb2060.ims.LogcatRepository
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
