@@ -46,6 +46,8 @@
     <string name="_5g_nr_desc">启用 5G 网络（非独立/独立组网）</string>
     <string name="_5g_thresholds">5G信号强度阈值调整</string>
     <string name="_5g_thresholds_desc">将 5G 信号强度阈值调整为与 LTE 阈值相同</string>
+    <string name="show_4g_for_lte">显示 4G 图标</string>
+    <string name="show_4g_for_lte_desc">LTE 网络显示为 4G 图标</string>
 
     <!-- Button -->
     <string name="apply_config">应用配置</string>

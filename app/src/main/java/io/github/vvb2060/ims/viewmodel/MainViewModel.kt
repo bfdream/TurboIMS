@@ -158,6 +158,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             val enableUT = (map[Feature.UT]?.data ?: true) as Boolean
             val enable5GNR = (map[Feature.FIVE_G_NR]?.data ?: true) as Boolean
             val enable5GThreshold = (map[Feature.FIVE_G_THRESHOLDS]?.data ?: true) as Boolean
+            val enableShow4GForLTE = (map[Feature.SHOW_4G_FOR_LTE]?.data ?: false) as Boolean
 
             val bundle = ImsModifier.buildBundle(
                 carrierName,
@@ -170,7 +171,8 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                 enableCrossSIM,
                 enableUT,
                 enable5GNR,
-                enable5GThreshold
+                enable5GThreshold,
+                enableShow4GForLTE
             )
             bundle.putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, selectedSim.subId)
 

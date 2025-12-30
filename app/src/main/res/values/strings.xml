@@ -46,6 +46,8 @@
     <string name="_5g_nr_desc">Enable 5G network (Non-Standalone/Standalone)</string>
     <string name="_5g_thresholds">5G Signal Strength Modify</string>
     <string name="_5g_thresholds_desc">Adjust 5G signal strength thresholds to be the same as LTE thresholds</string>
+    <string name="show_4g_for_lte">Show 4G for LTE</string>
+    <string name="show_4g_for_lte_desc">Show 4G icon for LTE data</string>
 
     <!-- Button -->
     <string name="apply_config">Apply</string>

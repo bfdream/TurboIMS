@@ -40,6 +40,7 @@ class ImsModifier : Instrumentation() {
             enableUT: Boolean,
             enable5GNR: Boolean,
             enable5GThreshold: Boolean,
+            enableShow4GForLTE: Boolean,
         ): Bundle {
             val bundle = Bundle()
             // 运营商名称
@@ -71,6 +72,11 @@ class ImsModifier : Instrumentation() {
                 bundle.putBoolean(CarrierConfigManager.KEY_EDITABLE_ENHANCED_4G_LTE_BOOL, true)
                 bundle.putBoolean(CarrierConfigManager.KEY_HIDE_ENHANCED_4G_LTE_BOOL, false)
                 bundle.putBoolean(CarrierConfigManager.KEY_HIDE_LTE_PLUS_DATA_ICON_BOOL, false)
+            }
+
+            // LTE 显示为 4G
+            if (enableShow4GForLTE) {
+                bundle.putBoolean("show_4g_for_lte_data_icon_bool", true)
             }
 
             // VT (视频通话) 配置
