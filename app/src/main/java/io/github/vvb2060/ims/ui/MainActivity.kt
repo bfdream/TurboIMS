@@ -176,6 +176,24 @@ class MainActivity : BaseActivity() {
                     featureSwitches,
                     onFeatureSwitchChange = { feature, value ->
                         featureSwitches[feature] = value
+                        if (value.valueType == FeatureValueType.BOOLEAN && value.data is Boolean) {
+                            val enabled = value.data as Boolean
+                            when (feature) {
+                                Feature.FIVE_G_NR_ONLY_SA -> {
+                                    if (enabled) {
+                                        featureSwitches[Feature.FIVE_G_NR] =
+                                            FeatureValue(false, FeatureValueType.BOOLEAN)
+                                    }
+                                }
+                                Feature.FIVE_G_NR -> {
+                                    if (enabled) {
+                                        featureSwitches[Feature.FIVE_G_NR_ONLY_SA] =
+                                            FeatureValue(false, FeatureValueType.BOOLEAN)
+                                    }
+                                }
+                                else -> Unit
+                            }
+                        }
                     },
                     loadFeatureHistory = {
                         featureSwitches.clear()

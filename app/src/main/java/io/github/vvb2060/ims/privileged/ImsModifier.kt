@@ -39,6 +39,7 @@ class ImsModifier : Instrumentation() {
             enableCrossSIM: Boolean,
             enableUT: Boolean,
             enable5GNR: Boolean,
+            enable5GNROnlySA: Boolean,
             enable5GThreshold: Boolean,
             enableShow4GForLTE: Boolean,
         ): Bundle {
@@ -125,14 +126,22 @@ class ImsModifier : Instrumentation() {
             }
 
             // 5G NR 配置
-            if (enable5GNR) {
-                bundle.putIntArray(
-                    CarrierConfigManager.KEY_CARRIER_NR_AVAILABILITIES_INT_ARRAY,
+            val enableAny5G = enable5GNR || enable5GNROnlySA
+            if (enableAny5G) {
+                val nrAvailabilities = if (enable5GNROnlySA) {
+                    intArrayOf(CarrierConfigManager.CARRIER_NR_AVAILABILITY_SA)
+                } else {
                     intArrayOf(
                         CarrierConfigManager.CARRIER_NR_AVAILABILITY_NSA,
                         CarrierConfigManager.CARRIER_NR_AVAILABILITY_SA
                     )
+                }
+
+                bundle.putIntArray(
+                    CarrierConfigManager.KEY_CARRIER_NR_AVAILABILITIES_INT_ARRAY,
+                    nrAvailabilities
                 )
+
                 if (enable5GThreshold) {
                     bundle.putIntArray(
                         CarrierConfigManager.KEY_5G_NR_SSRSRP_THRESHOLDS_INT_ARRAY,  // Boundaries: [-140 dBm, -44 dBm]

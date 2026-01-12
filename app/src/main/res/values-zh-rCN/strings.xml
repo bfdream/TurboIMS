@@ -44,6 +44,8 @@
     <string name="ut_desc">呼叫转移、呼叫等待等</string>
     <string name="_5g_nr">5G NR（NSA/SA）</string>
     <string name="_5g_nr_desc">启用 5G 网络（非独立/独立组网）</string>
+    <string name="_5g_nr_only_sa">5G NR（仅 SA）</string>
+    <string name="_5g_nr_only_sa_desc">仅启用 5G 独立组网（SA）</string>
     <string name="_5g_thresholds">5G信号强度阈值调整</string>
     <string name="_5g_thresholds_desc">将 5G 信号强度阈值调整为与 LTE 阈值相同</string>
     <string name="show_4g_for_lte">显示 4G 图标</string>

@@ -157,6 +157,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             val enableCrossSIM = (map[Feature.CROSS_SIM]?.data ?: true) as Boolean
             val enableUT = (map[Feature.UT]?.data ?: true) as Boolean
             val enable5GNR = (map[Feature.FIVE_G_NR]?.data ?: true) as Boolean
+            val enable5GNROnlySA = (map[Feature.FIVE_G_NR_ONLY_SA]?.data ?: false) as Boolean
             val enable5GThreshold = (map[Feature.FIVE_G_THRESHOLDS]?.data ?: true) as Boolean
             val enableShow4GForLTE = (map[Feature.SHOW_4G_FOR_LTE]?.data ?: false) as Boolean
 
@@ -171,6 +172,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                 enableCrossSIM,
                 enableUT,
                 enable5GNR,
+                enable5GNROnlySA,
                 enable5GThreshold,
                 enableShow4GForLTE
             )

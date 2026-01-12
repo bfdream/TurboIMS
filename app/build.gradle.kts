@@ -62,7 +62,7 @@ android {
             @Suppress("UnstableApiUsage")
             vcsInfo.include = false
             versionNameSuffix = ".d$gitVersionCode.$gitVersionName"
-            signingConfig = signingConfigs.getByName("sign")
+            // signingConfig = signingConfigs.getByName("sign")
         }
         release {
             isMinifyEnabled = true
@@ -71,7 +71,7 @@ android {
             vcsInfo.include = false
             proguardFiles("proguard-rules.pro")
             versionNameSuffix = ".r$gitVersionCode.$gitVersionName"
-            signingConfig = signingConfigs.getByName("sign")
+            // signingConfig = signingConfigs.getByName("sign")
         }
     }
     compileOptions {
@@ -115,4 +115,4 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
 }
 
-apply(from = rootProject.file("signing.gradle"))
+// apply(from = rootProject.file("signing.gradle"))

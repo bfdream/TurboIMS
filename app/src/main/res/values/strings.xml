@@ -44,6 +44,8 @@
     <string name="ut_desc">Call forwarding, call waiting, etc.</string>
     <string name="_5g_nr">5G NR (NSA/SA)</string>
     <string name="_5g_nr_desc">Enable 5G network (Non-Standalone/Standalone)</string>
+    <string name="_5g_nr_only_sa">5G NR (Only SA)</string>
+    <string name="_5g_nr_only_sa_desc">Enable 5G network (Standalone only)</string>
     <string name="_5g_thresholds">5G Signal Strength Modify</string>
     <string name="_5g_thresholds_desc">Adjust 5G signal strength thresholds to be the same as LTE thresholds</string>
     <string name="show_4g_for_lte">Show 4G for LTE</string>
