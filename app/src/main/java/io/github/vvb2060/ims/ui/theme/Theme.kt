@@ -84,7 +84,7 @@ private val darkScheme = darkColorScheme(
 )
 
 @Composable
-fun TurbolImsTheme(
+fun TurboImsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {

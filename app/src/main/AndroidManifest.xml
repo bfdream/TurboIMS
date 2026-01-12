@@ -13,7 +13,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.TurbolIms">
+            android:theme="@style/Theme.TurboIms">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -22,7 +22,7 @@
         <activity
             android:name=".ui.LogcatActivity"
             android:exported="true"
-            android:theme="@style/Theme.TurbolIms" />
+            android:theme="@style/Theme.TurboIms" />
 
         <provider
             android:name=".ShizukuProvider"
@@ -40,13 +40,4 @@
                 android:resource="@xml/logcat_filepaths" />
         </provider>
     </application>
-
-    <instrumentation
-        android:name=".privileged.ImsModifier"
-        android:label="IMS Configurator"
-        android:targetPackage="${applicationId}" />
-    <instrumentation
-        android:name=".privileged.SimReader"
-        android:label="SimReader"
-        android:targetPackage="${applicationId}" />
 </manifest>
