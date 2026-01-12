@@ -177,7 +177,7 @@ class MainActivity : BaseActivity() {
                     onFeatureSwitchChange = { feature, value ->
                         featureSwitches[feature] = value
                         if (value.valueType == FeatureValueType.BOOLEAN && value.data is Boolean) {
-                            val enabled = value.data as Boolean
+                            val enabled = value.data
                             when (feature) {
                                 Feature.FIVE_G_NR_ONLY_SA -> {
                                     if (enabled) {
